@@ -2,8 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import concurrent.futures
 import csv
+import sys
 
-# Function to fetch municipality data
 def fetch_municipality_data(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -11,17 +11,14 @@ def fetch_municipality_data(url):
     longitude = soup.find('span', {'class': 'longitude'}).get_text(strip=True) if soup.find('span', {'class': 'longitude'}) else 'Not available'
     return url, latitude, longitude
 
-# URL of the Wikipedia page
-url = 'https://en.wikipedia.org/wiki/List_of_municipalities_of_Norway'
+input_html_file = sys.argv[1]
+output_csv_file = sys.argv[2]
 
-# Fetch the page
-response = requests.get(url)
-soup = BeautifulSoup(response.content, 'html.parser')
+with open(input_html_file, 'r', encoding='utf-8') as file:
+    soup = BeautifulSoup(file, 'html.parser')
 
-# Find the table
 table = soup.find('table', {'class': 'wikitable'})
 
-# Prepare list of URLs for multithreading
 municipalities = []
 for row in table.find_all('tr')[1:]:
     cols = row.find_all('td')
@@ -35,7 +32,7 @@ with concurrent.futures.ThreadPoolExecutor() as executor:
     results = executor.map(lambda x: fetch_municipality_data(x[1]), municipalities)
 
 # Save the data to a CSV file
-with open('municipalities_data.csv', 'w', newline='', encoding='utf-8') as file:
+with open(output_csv_file, 'w', newline='', encoding='utf-8') as file:
     writer = csv.writer(file)
     writer.writerow(['Name', 'URL', 'Latitude', 'Longitude'])
     for name, (url, latitude, longitude) in zip(municipalities, results):
