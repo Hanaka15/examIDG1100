@@ -11,6 +11,7 @@
         box-sizing: border-box;
         color: #fff;
       }
+      
       h1 {
         font-size: 3rem;
       }
@@ -59,11 +60,6 @@
         background-color: #ffffff49;
         text-align: center;
         padding: 1rem;
-      }
-      img {
-        width: 3rem;
-        vertical-align: middle;
-        display: inline-block;
       }
     </style>
     <header>

@@ -12,7 +12,7 @@ echo "$CGI_SCRIPT_CONTENT" > "$CGI_SCRIPT"
 sudo chown www-data:www-data "$CGI_SCRIPT"
 sudo chmod 755 "$CGI_SCRIPT"
 
-# Building a list of locations from the data file.
+# making a list of locations from the data file.
 locations=($(tail -n +2 "$DATA_FILE" | cut -d ',' -f 1))
 
 # Creating HTML list elements for each location.
@@ -24,7 +24,7 @@ do
 done
 location_list_html="<ul>$li_elements</ul>"
 
-# Updating the index page with the location list.
+# Updating the index page with the location list. replacing the placeholder.
 sed -i "s|{{location_list}}|$location_list_html|g" "${DEST_DIR}/public_html/index.html"
 
 # Configuring Apache with necessary settings.

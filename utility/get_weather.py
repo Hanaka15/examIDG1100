@@ -15,23 +15,24 @@ def fetch_weather_data(location):
     params = {'lat': lat, 'lon': lon}
 
     try:
-        # API request
+        # Send request to https://api.met.no to get weather data.
         response = requests.get(BASE_URL, headers=HEADERS, params=params)
         response.raise_for_status()
         weather_data = response.json()
 
-        # Parse weather data
+        # Parse weather data to get current temperature and forecast
         current_time = datetime.now().isoformat()
         timeseries = weather_data.get('properties', {}).get('timeseries', [])
         current_weather = next((item for item in timeseries if item['time'] > current_time), None)
 
-        # Get temperature and forecast data
+        # Get temperature and forecast data from current weather data
         if current_weather:
             temp = current_weather['data']['instant']['details']['air_temperature']
             forecast = current_weather['data']['next_1_hours']['summary']['symbol_code']
-            print(name, temp, forecast)
+            # Print current temperature and forecast.
+            # print(name, temp, forecast) 
             return name, lat, lon, temp, forecast
-    except Exception as e:
+    except Exception as e:  # basic error handling to keep the script running
         print(f"Error for {name}: {e}")
 
     return name, lat, lon, 'No data', 'Unknown'
@@ -43,11 +44,11 @@ def main(csv_file):
         locations = [(row['Name'], row['Latitude'], row['Longitude']) for row in reader]
         fieldnames = reader.fieldnames
 
-    # Fetch weather data concurrently
+    # Fetch weather data concurrently using concurrent.futures.
     with concurrent.futures.ThreadPoolExecutor() as executor:
         results = list(executor.map(fetch_weather_data, locations))
 
-    # Update CSV file with new weather data
+    # Update CSV file with new weather data 
     with open(csv_file, 'w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames + ['Temperature', 'Forecast'])
         writer.writeheader()

@@ -14,27 +14,28 @@ def dms_to_decimal(dms):
         return -decimal if direction in ['S', 'W'] else decimal
     return None
 
-#Used 
+# Function to fetch cordinates from the manipulated sites.
 def fetch_municipality_data(name, url):
     try:
         response = requests.get(url)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
-        html_content = str(soup)
 
-        # Regex to find coordinates in DMS format
-        dms_pattern = r'(\d{1,2}°\d{1,2}′\d{1,2}″[N|S]).*(\d{1,2}°\d{1,2}′\d{1,2}″[E|W])'
-        dms_match = re.search(dms_pattern, html_content)
-        if dms_match:
-            latitude_dms, longitude_dms = dms_match.groups()
-            latitude = dms_to_decimal(latitude_dms)
-            longitude = dms_to_decimal(longitude_dms)
-            if latitude is not None and longitude is not None:
-                print(f"Fetching data for {name}")
-                return name, url, latitude, longitude
+        # Iterate through each 'geo-dms' element
+        for geo_dms in soup.find_all('span', {'class': 'geo-dms'}):
+            # Find latitude and longitude spans
+            latitude_span = geo_dms.find('span', {'class': 'latitude'})
+            longitude_span = geo_dms.find('span', {'class': 'longitude'})
 
+            # Convert DMS to decimal and check for validity
+            if latitude_span and longitude_span:
+                latitude = dms_to_decimal(latitude_span.get_text(strip=True))
+                longitude = dms_to_decimal(longitude_span.get_text(strip=True))
+                if latitude != 'Not available' and longitude != 'Not available':
+                    return name, url, latitude, longitude
+        return name, url, 'Not available', 'Not available'
     except Exception:
-        pass
+        return name, url, 'Error', 'Error'
     
 def main(input_html_file, output_csv_file):
     # Read HTML file and parse with BeautifulSoup
