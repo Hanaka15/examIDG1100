@@ -1,56 +1,38 @@
 #!/bin/bash
 
-# Configuration Variables
-SITE_NAME="Weatherly.local"
-ADMIN_EMAIL="admin@example.com"
-
-# Variables that don't need to be changed
-TEMPLATE_DIR="./templates"
-DEST_DIR="/var/www/${SITE_NAME}"
-APACHE_SITE_CONF="/etc/apache2/sites-available/${SITE_NAME}.conf"
-DYNAMIC_SCRIPT_TEMPLATE="${TEMPLATE_DIR}/dynamic_template.txt"
-WEATHER_PAGE_TEMPLATE="${TEMPLATE_DIR}/weather_page_template.html"
-DATA_FILE="${DEST_DIR}/data/data.csv"
-
-# Function to check if a command exists
-command_exists() {
-    command -v "$1" &> /dev/null
-}
+source ./config.sh
+source $UTILITY_DIR/functions.sh
 
 # Check if Python and pip are installed
 if ! command_exists python3 || ! command_exists pip3; then
-    echo "Missing: Python 3 and pip3"
+    spacer "Missing: Python 3 | pip3"
     exit 1
 fi
 
-# Install required Python modules
-echo "Installing required Python modules..."
-pip3 install requests beautifulsoup4 --user
+spacer "Attempting pip install..."
+pip3 install requests beautifulsoup4 --user > /dev/null 2>&1
 
-# Create directories
+# Create directories and files
 mkdir -p "${DEST_DIR}/cgi-bin"
 mkdir -p "${DEST_DIR}/public_html"
+mkdir -p "${DEST_DIR}/data"
 
-# Run the extractor script to fetch and save data
-echo "Running the Python script..."
-python3 ./extract.py "${DEST_DIR}/municipalities.html" "$DATA_FILE"
+cp -n $INDEX_TEMPLATE "$DEST_DIR/public_html/index.html"
+cp $WEATHER_TEMPLATE "${DEST_DIR}/cgi-bin/template.html"
 
-# Prepare and deploy the CGI script
-echo "Preparing the CGI script..."
-sed -e "s|%DATA_FILE%|$DATA_FILE|" \
-    -e "s|%PAGE_TEMPLATE%|\$(<"$WEATHER_PAGE_TEMPLATE")|" \
-    "$DYNAMIC_SCRIPT_TEMPLATE" > "${DEST_DIR}/cgi-bin/place.sh"
-chmod +x "${DEST_DIR}/cgi-bin/place.sh"
+source $UTILITY_DIR/icons.sh
 
-# Set Up Apache Configuration
-echo "Setting up Apache configuration..."
-sed -e "s|%DEST_DIR%|$DEST_DIR|" \
-    -e "s|%ADMIN_EMAIL%|$ADMIN_EMAIL|" \
-    "$APACHE_TEMPLATE" > "$APACHE_SITE_CONF"
+if [ ! -f "$DATA_FILE" ]; then
+    spacer "Running the Python script..."
+    mkdir -p $TMP_DIR
+    curl "https://en.wikipedia.org/wiki/List_of_municipalities_of_Norway" > "${TMP_DIR}/municipalities.html" 
+    python3 "$UTILITY_DIR/extract.py" "${TMP_DIR}/municipalities.html" "$DATA_FILE"
+    rm -r $TMP_DIR
+fi
 
-# Enable the site and restart Apache
-echo "Enabling the site and restarting Apache..."
-sudo a2ensite "${SITE_NAME}"
-sudo systemctl restart apache2
+spacer "Getting Weather data"
+#python3 "$UTILITY_DIR/get_weather.py" "$DATA_FILE"
 
-echo "Deployment complete."
+source $UTILITY_DIR/apache.sh
+
+spacer "Deployment complete."

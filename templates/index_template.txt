@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <style>
+      * {
+        box-sizing: border-box;
+        color: #fff;
+      }
+      h1 {
+        font-size: 3rem;
+      }
+
+      body,
+      header {
+        background-color: #000;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100vh;
+      }
+
+      header {
+        width: 100%;
+        background-color: #1d2847;
+        min-height: 20rem;
+        position: relative;
+      }
+
+      .center {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        top: 50%;
+        left: 50%;
+        margin: 0;
+        text-align: center;
+      }
+
+      main {
+        padding: 2rem 0;
+        text-align: center;
+      }
+
+      li {
+        list-style-type: none;
+        font-size: 1.5rem;
+        margin: 5rem;
+      }
+
+      a {
+        text-decoration: none;
+        color: #fff;
+        display: inline-block;
+        width: 20rem;
+        background-color: #ffffff49;
+        text-align: center;
+        padding: 1rem;
+      }
+      img {
+        width: 3rem;
+        vertical-align: middle;
+        display: inline-block;
+      }
+    </style>
+    <header>
+      <div class="center">
+        <h1>Jahn-Aage Hegg</h1>
+        <h2>Weather website</h2>
+      </div>
+    </header>
+    <main>
+      <ul>
+        {{location_list}}
+      </ul>
+    </main>
+  </body>
+</html>
